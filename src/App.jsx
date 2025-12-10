@@ -1,7 +1,43 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, ChevronLeft, AlertCircle, Sparkles, History, X, Globe, Languages, Image as ImageIcon, GraduationCap, School, BookOpenCheck, Users, Plus, Trash2, CheckCircle, Loader, Save, RotateCcw, ArrowRight, ScanLine, Eye, Settings, Key, ExternalLink, EyeOff, ThumbsUp, Target, PenTool, Zap, Brain, Edit2, FileJson, Download, ClipboardPaste, ChevronRight, Database, HelpCircle, Lightbulb, CheckSquare, Square, Heart } from 'lucide-react';
+import { Camera, ChevronLeft, AlertCircle, Sparkles, History, X, Globe, Languages, Image as ImageIcon, GraduationCap, School, BookOpenCheck, Users, Plus, Trash2, CheckCircle, Loader, Save, RotateCcw, ArrowRight, ScanLine, Eye, Settings, Key, ExternalLink, EyeOff, ThumbsUp, Target, PenTool, Zap, Brain, Edit2, FileJson, Download, ClipboardPaste, ChevronRight, Database, HelpCircle, Lightbulb, CheckSquare, Square, Heart, Share, Menu } from 'lucide-react';
 
-// --- Utility: 圖像處理工具 ---
+// --- Utility: Safe Local Storage ---
+const safeLocalStorage = {
+  getItem: (key, fallback = '') => {
+    try {
+      const item = localStorage.getItem(key);
+      return item !== null ? item : fallback;
+    } catch (e) {
+      console.warn(`LocalStorage access denied for ${key}`);
+      return fallback;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn(`LocalStorage write failed for ${key}`);
+    }
+  },
+  getJSON: (key, fallback = []) => {
+    try {
+      const item = localStorage.getItem(key);
+      if (!item) return fallback;
+      const parsed = JSON.parse(item);
+      if (key === 'essay_grader_history' && !Array.isArray(parsed)) {
+        return fallback;
+      }
+      return parsed;
+    } catch (e) {
+      return fallback;
+    }
+  },
+  clear: () => {
+    try { localStorage.clear(); } catch (e) {}
+  }
+};
+
+// --- Utility: Image Processing ---
 const preprocessImage = (imageFile) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -85,6 +121,82 @@ const parseRobustJSON = (text) => {
   }
 };
 
+// --- Component: Install Guide Modal ---
+const InstallModal = ({ isOpen, onClose }) => {
+  const [os, setOs] = useState('unknown');
+
+  useEffect(() => {
+    const userAgent = window.navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(userAgent)) {
+      setOs('ios');
+    } else if (/android/.test(userAgent)) {
+      setOs('android');
+    } else {
+      setOs('desktop');
+    }
+  }, []);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Download size={24} className="text-pink-600" />
+            Install App
+          </h3>
+          <button onClick={onClose} className="p-1 text-slate-400 hover:bg-slate-100 rounded-full">
+            <X size={20} />
+          </button>
+        </div>
+
+        <p className="text-slate-600 text-sm mb-6">
+          Install <strong>Miss Wong AI</strong> on your home screen for quick access.
+        </p>
+
+        {os === 'ios' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 text-sm text-slate-700">
+              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">1</span>
+              <span>Tap the <strong className="text-blue-600">Share</strong> button.</span>
+              <Share size={20} className="text-blue-500" />
+            </div>
+            <div className="w-px h-4 bg-slate-200 ml-4"></div>
+            <div className="flex items-center gap-4 text-sm text-slate-700">
+              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">2</span>
+              <span>Scroll down and select <strong className="text-slate-800">"Add to Home Screen"</strong>.</span>
+              <Plus size={20} className="bg-slate-200 p-0.5 rounded text-slate-600" />
+            </div>
+          </div>
+        )}
+
+        {os === 'android' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 text-sm text-slate-700">
+              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">1</span>
+              <span>Tap the <strong>Menu</strong> (three dots) icon.</span>
+              <Menu size={20} className="text-slate-500" />
+            </div>
+            <div className="w-px h-4 bg-slate-200 ml-4"></div>
+            <div className="flex items-center gap-4 text-sm text-slate-700">
+              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">2</span>
+              <span>Select <strong className="text-slate-800">"Install App"</strong>.</span>
+            </div>
+          </div>
+        )}
+
+        <button 
+          onClick={onClose}
+          className="w-full mt-8 py-3 bg-pink-500 text-white rounded-xl font-bold active:scale-95 transition-all"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // --- Component: Memo Style Tooltip ---
 const ErrorTooltip = ({ original, correction, reason }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -120,7 +232,7 @@ const ErrorTooltip = ({ original, correction, reason }) => {
 
       {isOpen && (
         <span 
-            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-48 sm:w-56 p-3 rounded-tr-xl rounded-bl-xl rounded-tl-sm rounded-br-sm shadow-2xl animate-in fade-in zoom-in duration-200 text-left leading-relaxed border border-yellow-200 z-[9999]"
+            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-48 sm:w-56 p-3 rounded-tr-xl rounded-bl-xl rounded-tl-sm rounded-br-sm shadow-2xl animate-in fade-in zoom-in duration-200 text-left leading-relaxed border border-yellow-200 z-[50]"
             style={{
                 backgroundColor: '#fff9c4', 
                 color: '#4b5563', 
@@ -157,36 +269,17 @@ const ErrorTooltip = ({ original, correction, reason }) => {
 };
 
 export default function App() {
-  const [userApiKey, setUserApiKey] = useState(() => {
-    try { return localStorage.getItem('essay_grader_api_key') || ''; } catch { return ''; }
-  });
-
-  const [essayLevel, setEssayLevel] = useState(() => {
-    try { return localStorage.getItem('essay_grader_level') || 'Primary'; } catch { return 'Primary'; }
-  });
-
-  const [selectedModel, setSelectedModel] = useState(() => {
-    try { 
-      return localStorage.getItem('essay_grader_model') || 'gemini-2.5-flash-preview-09-2025'; 
-    } catch { 
-      return 'gemini-2.5-flash-preview-09-2025'; 
-    }
-  });
-
-  const [history, setHistory] = useState(() => {
-    try {
-      const saved = localStorage.getItem('essay_grader_history');
-      const parsed = saved ? JSON.parse(saved) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
+  // --- STATE ---
+  const [userApiKey, setUserApiKey] = useState(() => safeLocalStorage.getItem('essay_grader_api_key'));
+  const [essayLevel, setEssayLevel] = useState(() => safeLocalStorage.getItem('essay_grader_level', 'Primary'));
+  const [selectedModel, setSelectedModel] = useState(() => safeLocalStorage.getItem('essay_grader_model', 'gemini-2.5-flash-preview-09-2025'));
+  const [history, setHistory] = useState(() => safeLocalStorage.getJSON('essay_grader_history', []));
+  
+  // View State
   const [currentView, setCurrentView] = useState(() => {
-    try { return localStorage.getItem('essay_grader_api_key') ? 'home' : 'settings'; } catch { return 'settings'; }
+     return safeLocalStorage.getItem('essay_grader_api_key') ? 'home' : 'settings';
   });
-
+  
   const [historyFilter, setHistoryFilter] = useState('incomplete'); 
   const [viewSource, setViewSource] = useState('upload'); 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -194,16 +287,41 @@ export default function App() {
   const [selectedUploadId, setSelectedUploadId] = useState(null);
   const [activeHistoryItem, setActiveHistoryItem] = useState(null);
 
-  useEffect(() => { try { localStorage.setItem('essay_grader_api_key', userApiKey); } catch {} }, [userApiKey]);
-  useEffect(() => { try { localStorage.setItem('essay_grader_level', essayLevel); } catch {} }, [essayLevel]);
-  useEffect(() => { try { localStorage.setItem('essay_grader_model', selectedModel); } catch {} }, [selectedModel]);
-  useEffect(() => { try { localStorage.setItem('essay_grader_history', JSON.stringify(history)); } catch {} }, [history]);
+  // PWA State
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
+
+  // --- Effects ---
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+      setIsStandalone(true);
+    }
+    const handler = (e) => { e.preventDefault(); setDeferredPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') setDeferredPrompt(null);
+      });
+    } else {
+      setShowInstallModal(true);
+    }
+  };
+
+  useEffect(() => { safeLocalStorage.setItem('essay_grader_api_key', userApiKey); }, [userApiKey]);
+  useEffect(() => { safeLocalStorage.setItem('essay_grader_level', essayLevel); }, [essayLevel]);
+  useEffect(() => { safeLocalStorage.setItem('essay_grader_model', selectedModel); }, [selectedModel]);
+  useEffect(() => { safeLocalStorage.setItem('essay_grader_history', JSON.stringify(history)); }, [history]);
+
+  // --- Actions ---
 
   const handleImageUpload = (e) => {
-    if (!userApiKey) {
-      setCurrentView('settings');
-      return;
-    }
+    if (!userApiKey) { setCurrentView('settings'); return; }
     const files = Array.from(e.target.files);
     if (files.length > 0) {
       const newUploads = files.map(file => ({
@@ -221,8 +339,13 @@ export default function App() {
         return updated;
       });
       setViewSource('upload');
-      if (currentView !== 'scan-preview') setCurrentView('scan-preview');
-      else if (uploads.length === 0) setSelectedUploadId(newUploads[0].id);
+      
+      // Force switch to preview if adding
+      if (currentView !== 'scan-preview') {
+          setCurrentView('scan-preview');
+      } else if (uploads.length === 0) {
+          setSelectedUploadId(newUploads[0].id);
+      }
     }
     e.target.value = '';
   };
@@ -236,38 +359,27 @@ export default function App() {
     });
   };
 
+  // --- UPDATED: Analyze Function using CUSTOM PROXY ---
   const analyzeSingleEssay = async (uploadItem) => {
     try {
       if (!userApiKey) throw new Error("API Key is missing");
-
       const base64Data = await preprocessImage(uploadItem.file);
 
       let levelPrompt = "";
       switch (essayLevel) {
-        case 'Primary':
-          levelPrompt = "Student Level: Primary School. Criteria: Basic spelling, simple tenses. Tone: Very encouraging, simple words.";
-          break;
-        case 'University':
-          levelPrompt = "Student Level: University. Criteria: Argumentation, academic vocabulary. Tone: Formal & critical.";
-          break;
-        case 'Secondary':
-        default:
-          levelPrompt = "Student Level: Secondary School. Criteria: Grammar, variety, structure. Tone: Constructive.";
-          break;
+        case 'Primary': levelPrompt = "Student Level: Primary School. Criteria: Basic spelling, simple tenses. Tone: Very encouraging, simple words."; break;
+        case 'University': levelPrompt = "Student Level: University. Criteria: Argumentation, academic vocabulary. Tone: Formal & critical."; break;
+        case 'Secondary': default: levelPrompt = "Student Level: Secondary School. Criteria: Grammar, variety, structure. Tone: Constructive."; break;
       }
 
       const promptText = `
         You are an expert OCR and ESL English teacher.
-        
         **STEP 1: OCR TRANSCRIPTION**
         Transcribe the English text EXACTLY as written, preserving all errors. Detect the student's name.
-        
         **STEP 2: ANALYSIS**
         Analyze based on: ${levelPrompt}
-        
         **STEP 3: OUTPUT JSON**
-        IMPORTANT: Return VALID JSON. Ensure all double quotes inside strings are escaped with a backslash.
-        
+        IMPORTANT: Return VALID JSON. Escape double quotes in strings.
         Return result in this JSON format:
         {
           "studentName": "Detected Name or 'Unknown'",
@@ -284,33 +396,50 @@ export default function App() {
         }
       `;
 
+      // --- PROXY CONFIGURATION START ---
+      const PROXY_URL = 'https://my-gemini-proxy-dun.vercel.app/api'; 
+      
       const response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${userApiKey}`,
+        PROXY_URL,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-gemini-api-key': userApiKey, // Header authentication
+            'x-gemini-model': selectedModel
+          },
           body: JSON.stringify({
+            // Only sending standard Gemini Payload body
             contents: [{ role: "user", parts: [{ text: promptText }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }],
             generationConfig: { responseMimeType: "application/json" }
           })
         }
       );
+      // --- PROXY CONFIGURATION END ---
 
       if (!response.ok) {
         if (response.status === 404) throw new Error(`Model '${selectedModel}' not found. Check Settings.`);
         if (response.status === 400 || response.status === 403) throw new Error("Invalid API Key or Model Access Denied.");
         if (response.status === 503) throw new Error("Server is busy (503). Please try again later.");
+        
+        // Handle custom error text from proxy
+        const text = await response.text();
+        try {
+           const jsonErr = JSON.parse(text);
+           if(jsonErr.error) throw new Error(jsonErr.error);
+        } catch(e) { /* use default error */ }
+        
         throw new Error(`API Error: ${response.status}`);
       }
       
       const data = await response.json();
+      
       const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!textResponse) throw new Error("No response text");
 
       const resultData = parseRobustJSON(textResponse);
       resultData.processedImageBase64 = base64Data;
       resultData.modelUsed = selectedModel;
-      
       return resultData;
 
     } catch (error) {
@@ -360,7 +489,6 @@ export default function App() {
 
   const renderDiffText = (text) => {
     if (!text) return null;
-
     if (text.includes('{{{')) {
         const parts = text.split(/(\{\{\{.*?\}\}\})/g);
         return (
@@ -415,9 +543,16 @@ export default function App() {
                 <Globe size={20} className="text-pink-100" />
                 <h1 className="text-2xl font-bold">Miss Wong’s AI Assistant</h1>
             </div>
-            <button onClick={() => setCurrentView('settings')} className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors" title="Settings">
-                <Settings size={20} />
-            </button>
+            <div className="flex gap-2">
+                {!isStandalone && (
+                  <button onClick={handleInstallClick} className="p-2 bg-pink-400/50 hover:bg-pink-400 rounded-full transition-colors text-white" title="Install">
+                      <Download size={20} />
+                  </button>
+                )}
+                <button onClick={() => setCurrentView('settings')} className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors" title="Settings">
+                    <Settings size={20} />
+                </button>
+            </div>
         </div>
         <p className="text-pink-100 text-sm mb-6 font-medium">Assist Miss Wong in her work with love ❤️.</p>
         <div className="bg-white/20 p-1 rounded-xl backdrop-blur-sm flex justify-between">
