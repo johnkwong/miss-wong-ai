@@ -6,7 +6,7 @@ import {
   ScanLine, Eye, Settings, Key, ExternalLink, EyeOff, ThumbsUp, Target, 
   PenTool, Zap, Brain, Edit2, FileJson, Download, ClipboardPaste, 
   ChevronRight, Database, HelpCircle, Lightbulb, CheckSquare, Square, 
-  Heart, Share, Menu 
+  Heart, Share, Menu, Link as LinkIcon, Layers, ShieldCheck
 } from 'lucide-react';
 
 // --- Utility: Safe Local Storage ---
@@ -93,9 +93,13 @@ const preprocessImage = (imageFile) => {
 };
 
 // --- Utility: API Retry Logic ---
-const fetchWithRetry = async (url, options, retries = 3, backoff = 1000) => {
+// Modified to not retry internally if we want to switch keys fast, 
+// but we keep small retries for network blips.
+const fetchWithRetry = async (url, options, retries = 1, backoff = 1000) => {
   try {
     const response = await fetch(url, options);
+    // If 429 (Quota) or 503 (Service Unavailable), we might want to fail fast to switch key, 
+    // OR retry once. Let's retry once for stability.
     if ((response.status === 503 || response.status === 429) && retries > 0) {
       console.warn(`Server busy (${response.status}), retrying in ${backoff}ms...`);
       await new Promise(resolve => setTimeout(resolve, backoff));
@@ -279,6 +283,10 @@ const ErrorTooltip = ({ original, correction, reason }) => {
 export default function App() {
   // --- STATE ---
   const [userApiKey, setUserApiKey] = useState(() => safeLocalStorage.getItem('essay_grader_api_key'));
+  // Added 2 backup keys
+  const [userApiKey2, setUserApiKey2] = useState(() => safeLocalStorage.getItem('essay_grader_api_key_2'));
+  const [userApiKey3, setUserApiKey3] = useState(() => safeLocalStorage.getItem('essay_grader_api_key_3'));
+  
   const [essayLevel, setEssayLevel] = useState(() => safeLocalStorage.getItem('essay_grader_level', 'Primary'));
   const [selectedModel, setSelectedModel] = useState(() => safeLocalStorage.getItem('essay_grader_model', 'gemini-2.5-flash-preview-09-2025'));
   const [history, setHistory] = useState(() => safeLocalStorage.getJSON('essay_grader_history', []));
@@ -291,6 +299,8 @@ export default function App() {
   const [historyFilter, setHistoryFilter] = useState('incomplete'); 
   const [viewSource, setViewSource] = useState('upload'); 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // Uploads now contain 'pages' array instead of single file
   const [uploads, setUploads] = useState([]);
   const [selectedUploadId, setSelectedUploadId] = useState(null);
   const [activeHistoryItem, setActiveHistoryItem] = useState(null);
@@ -322,6 +332,8 @@ export default function App() {
   };
 
   useEffect(() => { safeLocalStorage.setItem('essay_grader_api_key', userApiKey); }, [userApiKey]);
+  useEffect(() => { safeLocalStorage.setItem('essay_grader_api_key_2', userApiKey2); }, [userApiKey2]);
+  useEffect(() => { safeLocalStorage.setItem('essay_grader_api_key_3', userApiKey3); }, [userApiKey3]);
   useEffect(() => { safeLocalStorage.setItem('essay_grader_level', essayLevel); }, [essayLevel]);
   useEffect(() => { safeLocalStorage.setItem('essay_grader_model', selectedModel); }, [selectedModel]);
   useEffect(() => { safeLocalStorage.setItem('essay_grader_history', JSON.stringify(history)); }, [history]);
@@ -334,8 +346,8 @@ export default function App() {
     if (files.length > 0) {
       const newUploads = files.map(file => ({
         id: Math.random().toString(36).substr(2, 9),
-        file,
-        preview: URL.createObjectURL(file),
+        pages: [file], // Changed to Array
+        preview: URL.createObjectURL(file), // Preview first page
         status: 'idle',
         result: null,
         errorMsg: null
@@ -367,11 +379,38 @@ export default function App() {
     });
   };
 
-  // --- UPDATED: Analyze Function with "Accept US, Prioritize UK" Prompt ---
-  const analyzeSingleEssay = async (uploadItem) => {
-    try {
-      if (!userApiKey) throw new Error("API Key is missing. Please go to Settings.");
-      const base64Data = await preprocessImage(uploadItem.file);
+  // --- MERGE FUNCTIONALITY ---
+  const mergeWithPrevious = (currentIndex) => {
+    if (currentIndex <= 0) return;
+    setUploads(prev => {
+        const newUploads = [...prev];
+        const currentItem = newUploads[currentIndex];
+        const prevItem = newUploads[currentIndex - 1];
+        
+        // Merge pages
+        prevItem.pages = [...prevItem.pages, ...currentItem.pages];
+        // Reset status if merged into a done item (though usually done in idle)
+        prevItem.status = 'idle'; 
+        
+        // Remove current
+        newUploads.splice(currentIndex, 1);
+        
+        // Update selection
+        setSelectedUploadId(prevItem.id);
+        
+        return newUploads;
+    });
+  };
+
+  // --- INTERNAL HELPER: Single Analysis Call with specific Key ---
+  const attemptAnalysisWithKey = async (uploadItem, activeApiKey) => {
+      const imageParts = [];
+      for (const pageFile of uploadItem.pages) {
+          const base64Data = await preprocessImage(pageFile);
+          imageParts.push({ 
+              inlineData: { mimeType: "image/jpeg", data: base64Data } 
+          });
+      }
 
       let levelPrompt = "";
       switch (essayLevel) {
@@ -383,7 +422,7 @@ export default function App() {
       const promptText = `
         You are an expert OCR and ESL English teacher.
         **STEP 1: OCR TRANSCRIPTION**
-        Transcribe the English text EXACTLY as written, preserving all errors. Detect the student's name.
+        Transcribe the English text EXACTLY as written from ALL provided images (pages). Join them into one continuous text. Detect the student's name (usually on the first page).
         **STEP 2: ANALYSIS**
         Analyze based on: ${levelPrompt}
         
@@ -397,7 +436,7 @@ export default function App() {
         Return result in this JSON format:
         {
           "studentName": "Detected Name or 'Unknown'",
-          "ocrText": "Raw transcription",
+          "ocrText": "Raw transcription of all pages combined",
           "title": "Inferred Title",
           "score": 0-100,
           "diffText": "The complete essay text. BUT for every error found, replace the error with this specific pattern: {{{original_word|||corrected_word|||explanation_why}}}. Example: I {{{go|||went|||Use past tense}}} to school.",
@@ -410,16 +449,15 @@ export default function App() {
         }
       `;
 
-      // --- DIRECT API CALL ---
       const MODEL_NAME = selectedModel || 'gemini-2.5-flash-preview-09-2025';
-      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${activeApiKey}`;
       
       const payload = {
         contents: [{
           role: "user",
           parts: [
             { text: promptText },
-            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+            ...imageParts // Spread all images here
           ]
         }],
         generationConfig: {
@@ -439,10 +477,9 @@ export default function App() {
       );
 
       if (!response.ok) {
-        if (response.status === 404) throw new Error(`Model '${selectedModel}' not found. Check Settings.`);
-        if (response.status === 400) throw new Error("Invalid API Key or Bad Request.");
-        if (response.status === 403) throw new Error("API Key permissions denied.");
-        if (response.status === 503) throw new Error("Server is busy (503). Please try again later.");
+        if (response.status === 404) throw new Error(`Model '${selectedModel}' not found.`);
+        if (response.status === 400 || response.status === 403) throw new Error(`Invalid Key or Permission Denied (${response.status})`);
+        if (response.status === 503 || response.status === 429) throw new Error(`Server Busy/Quota Exceeded (${response.status})`);
         
         throw new Error(`API Error: ${response.status}`);
       }
@@ -453,14 +490,39 @@ export default function App() {
       if (!textResponse) throw new Error("No response text from AI");
 
       const resultData = parseRobustJSON(textResponse);
-      resultData.processedImageBase64 = base64Data;
+      // Store just the first page as preview image for the result view
+      resultData.processedImageBase64 = imageParts[0].inlineData.data; 
       resultData.modelUsed = selectedModel;
       return resultData;
+  }
 
-    } catch (error) {
-      console.error("Analysis failed", error);
-      throw error;
+  // --- UPDATED: Analyze Function with KEY ROTATION ---
+  const analyzeSingleEssay = async (uploadItem) => {
+    // Collect all valid keys
+    const validKeys = [userApiKey, userApiKey2, userApiKey3].filter(k => k && k.trim().length > 0);
+    
+    if (validKeys.length === 0) {
+        throw new Error("No API Key configured. Please check Settings.");
     }
+
+    let lastError = null;
+
+    // Try keys sequentially
+    for (let i = 0; i < validKeys.length; i++) {
+        const currentKey = validKeys[i];
+        try {
+            console.log(`Attempting analysis with Key #${i + 1}...`);
+            const result = await attemptAnalysisWithKey(uploadItem, currentKey);
+            return result; // Success! Return immediately
+        } catch (err) {
+            console.warn(`Key #${i + 1} failed: ${err.message}`);
+            lastError = err;
+            // Loop continues to next key if available
+        }
+    }
+
+    // If we reach here, all keys failed
+    throw lastError || new Error("All API keys failed.");
   };
 
   const startBatchAnalysis = async () => {
@@ -688,7 +750,13 @@ export default function App() {
 
   const SettingsView = () => {
     const [tempKey, setTempKey] = useState(userApiKey);
+    const [tempKey2, setTempKey2] = useState(userApiKey2 || '');
+    const [tempKey3, setTempKey3] = useState(userApiKey3 || '');
+    
     const [showKey, setShowKey] = useState(false);
+    const [showKey2, setShowKey2] = useState(false);
+    const [showKey3, setShowKey3] = useState(false);
+
     const [saveStatus, setSaveStatus] = useState('');
     const [tempModel, setTempModel] = useState(selectedModel); 
     const [isCustomMode, setIsCustomMode] = useState(false);
@@ -710,7 +778,7 @@ export default function App() {
 
     const handleSaveKey = () => {
         if (!tempKey.trim()) {
-            alert("Please enter a valid API Key.");
+            alert("Please enter at least the Primary API Key.");
             return;
         }
         
@@ -724,6 +792,8 @@ export default function App() {
         }
 
         setUserApiKey(tempKey);
+        setUserApiKey2(tempKey2);
+        setUserApiKey3(tempKey3);
         setSelectedModel(finalModel);
         setSaveStatus('Saved!');
         setTimeout(() => {
@@ -754,22 +824,63 @@ export default function App() {
                     </button>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
-                    <div className="flex items-center gap-3 mb-4">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Key size={24} /></div>
                         <h2 className="text-lg font-bold text-slate-800">API Configuration</h2>
                     </div>
-                    <div className="mb-6">
+                    
+                    {/* PRIMARY KEY */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">Primary API Key</label>
                         <div className="relative">
                             <input 
                                 type={showKey ? "text" : "password"}
                                 value={tempKey}
                                 onChange={(e) => setTempKey(e.target.value)}
-                                placeholder="Paste API Key..."
+                                placeholder="Required"
                                 className={`w-full p-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 bg-slate-50 text-slate-800 ${isFirstSetup && !tempKey ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'}`}
                             />
                             <button onClick={() => setShowKey(!showKey)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
                                 {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BACKUP KEY 1 */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <ShieldCheck size={12} className="text-slate-400" /> Backup Key 1 (Optional)
+                        </label>
+                        <div className="relative">
+                            <input 
+                                type={showKey2 ? "text" : "password"}
+                                value={tempKey2}
+                                onChange={(e) => setTempKey2(e.target.value)}
+                                placeholder="Auto-fallback if primary fails"
+                                className="w-full p-3 pr-12 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 bg-slate-50 text-slate-800"
+                            />
+                            <button onClick={() => setShowKey2(!showKey2)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+                                {showKey2 ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BACKUP KEY 2 */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <ShieldCheck size={12} className="text-slate-400" /> Backup Key 2 (Optional)
+                        </label>
+                        <div className="relative">
+                            <input 
+                                type={showKey3 ? "text" : "password"}
+                                value={tempKey3}
+                                onChange={(e) => setTempKey3(e.target.value)}
+                                placeholder="Second fallback option"
+                                className="w-full p-3 pr-12 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 bg-slate-50 text-slate-800"
+                            />
+                            <button onClick={() => setShowKey3(!showKey3)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
+                                {showKey3 ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
                     </div>
@@ -902,6 +1013,7 @@ export default function App() {
   const BatchPreviewView = () => {
     const currentUpload = uploads.find(u => u.id === selectedUploadId) || uploads[0];
     const pendingCount = uploads.filter(u => u.status === 'idle').length;
+    const currentIndex = uploads.findIndex(u => u.id === selectedUploadId);
     
     return (
       <div className="flex flex-col h-full bg-slate-900">
@@ -919,10 +1031,21 @@ export default function App() {
              </button>
           ) : <div className="w-9"></div>}
         </div>
-        <div className="flex-1 flex items-center justify-center relative bg-black overflow-hidden">
+        
+        {/* Main Preview Area */}
+        <div className="flex-1 flex items-center justify-center relative bg-black overflow-hidden group">
           {currentUpload && (
             <img src={currentUpload.preview} alt="Preview" className="max-w-full max-h-full object-contain" />
           )}
+          
+          {/* Overlay for Multi-page Info */}
+          {currentUpload && currentUpload.pages.length > 1 && (
+              <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 backdrop-blur-md">
+                  <Layers size={14} />
+                  {currentUpload.pages.length} Pages
+              </div>
+          )}
+
           {currentUpload?.status === 'done' && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-sm">
               <div className="bg-white p-4 rounded-2xl flex flex-col items-center shadow-xl animate-bounce-in">
@@ -938,28 +1061,54 @@ export default function App() {
              </div>
           )}
         </div>
-        <div className="h-24 bg-slate-800 p-2 flex gap-2 overflow-x-auto">
-          {uploads.map(u => (
-            <button key={u.id} onClick={() => setSelectedUploadId(u.id)} className={`relative flex-shrink-0 aspect-[3/4] h-full rounded-lg overflow-hidden border-2 transition-all ${selectedUploadId === u.id ? 'border-white scale-105' : 'border-transparent opacity-60'}`}>
-              <img src={u.preview} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                 {u.status === 'analyzing' && <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>}
-                 {u.status === 'done' && <div className="bg-green-500 rounded-full p-0.5"><CheckCircle size={12} className="text-white"/></div>}
-                 {u.status === 'error' && <div className="bg-red-500 rounded-full p-0.5"><AlertCircle size={12} className="text-white"/></div>}
-              </div>
-              {!isAnalyzing && (
-                 <div onClick={(e) => { e.stopPropagation(); removeUpload(u.id); }} className="absolute top-0 right-0 p-1 bg-black/50 text-white hover:bg-red-500"><X size={10} /></div>
-              )}
-            </button>
+        
+        {/* Thumbnails List */}
+        <div className="h-28 bg-slate-800 p-2 flex gap-2 overflow-x-auto items-center">
+          {uploads.map((u, idx) => (
+            <div key={u.id} className="relative flex-shrink-0 h-full flex items-center">
+                
+                {/* MERGE BUTTON (Left side of card, only if not first item) */}
+                {idx > 0 && !isAnalyzing && u.status === 'idle' && (
+                    <button 
+                        onClick={() => mergeWithPrevious(idx)}
+                        className="mr-1 p-1 bg-slate-700 text-slate-400 rounded-full hover:bg-slate-600 hover:text-white transition-colors"
+                        title="Merge with previous"
+                    >
+                        <LinkIcon size={14} />
+                    </button>
+                )}
+
+                <button onClick={() => setSelectedUploadId(u.id)} className={`relative aspect-[3/4] h-full rounded-lg overflow-hidden border-2 transition-all ${selectedUploadId === u.id ? 'border-white scale-105' : 'border-transparent opacity-60'}`}>
+                <img src={u.preview} className="w-full h-full object-cover" />
+                
+                {/* Page Count Indicator on Thumbnail */}
+                {u.pages.length > 1 && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] text-center py-0.5 font-bold">
+                        {u.pages.length} Pages
+                    </div>
+                )}
+
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    {u.status === 'analyzing' && <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>}
+                    {u.status === 'done' && <div className="bg-green-500 rounded-full p-0.5"><CheckCircle size={12} className="text-white"/></div>}
+                    {u.status === 'error' && <div className="bg-red-500 rounded-full p-0.5"><AlertCircle size={12} className="text-white"/></div>}
+                </div>
+                {!isAnalyzing && (
+                    <div onClick={(e) => { e.stopPropagation(); removeUpload(u.id); }} className="absolute top-0 right-0 p-1 bg-black/50 text-white hover:bg-red-500 z-10"><X size={10} /></div>
+                )}
+                </button>
+            </div>
           ))}
+          
           {!isAnalyzing && (
-            <label className="flex-shrink-0 aspect-[3/4] h-full rounded-lg border-2 border-dashed border-slate-600 flex flex-col items-center justify-center text-slate-500 hover:text-white hover:border-slate-400 cursor-pointer">
+            <label className="flex-shrink-0 aspect-[3/4] h-full rounded-lg border-2 border-dashed border-slate-600 flex flex-col items-center justify-center text-slate-500 hover:text-white hover:border-slate-400 cursor-pointer ml-2">
               <Plus size={20} />
               <span className="text-[10px] mt-1">Add</span>
-              <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handleImageUpload} />
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
             </label>
           )}
         </div>
+        
         <div className="p-4 bg-slate-900 border-t border-slate-800">
           {pendingCount > 0 ? (
             <button onClick={startBatchAnalysis} disabled={isAnalyzing} className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${isAnalyzing ? 'bg-slate-700 text-slate-400' : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_20px_rgba(255,255,255,0.3)]'}`}>
