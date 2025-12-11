@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, ChevronLeft, AlertCircle, Sparkles, History, X, Globe, Languages, Image as ImageIcon, GraduationCap, School, BookOpenCheck, Users, Plus, Trash2, CheckCircle, Loader, Save, RotateCcw, ArrowRight, ScanLine, Eye, Settings, Key, ExternalLink, EyeOff, ThumbsUp, Target, PenTool, Zap, Brain, Edit2, FileJson, Download, ClipboardPaste, ChevronRight, Database, HelpCircle, Lightbulb, CheckSquare, Square, Heart, Share, Menu } from 'lucide-react';
+import { 
+  Camera, ChevronLeft, AlertCircle, Sparkles, History, X, Globe, 
+  Languages, Image as ImageIcon, GraduationCap, School, BookOpenCheck, 
+  Users, Plus, Trash2, CheckCircle, Loader, Save, RotateCcw, ArrowRight, 
+  ScanLine, Eye, Settings, Key, ExternalLink, EyeOff, ThumbsUp, Target, 
+  PenTool, Zap, Brain, Edit2, FileJson, Download, ClipboardPaste, 
+  ChevronRight, Database, HelpCircle, Lightbulb, CheckSquare, Square, 
+  Heart, Share, Menu 
+} from 'lucide-react';
 
 // --- Utility: Safe Local Storage ---
 const safeLocalStorage = {
@@ -143,7 +151,7 @@ const InstallModal = ({ isOpen, onClose }) => {
       <div className="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <Download size={24} className="text-pink-600" />
+            <Download size={24} className="text-slate-900" />
             Install App
           </h3>
           <button onClick={onClose} className="p-1 text-slate-400 hover:bg-slate-100 rounded-full">
@@ -158,13 +166,13 @@ const InstallModal = ({ isOpen, onClose }) => {
         {os === 'ios' && (
           <div className="space-y-4">
             <div className="flex items-center gap-4 text-sm text-slate-700">
-              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">1</span>
+              <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-700">1</span>
               <span>Tap the <strong className="text-blue-600">Share</strong> button.</span>
               <Share size={20} className="text-blue-500" />
             </div>
             <div className="w-px h-4 bg-slate-200 ml-4"></div>
             <div className="flex items-center gap-4 text-sm text-slate-700">
-              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">2</span>
+              <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-700">2</span>
               <span>Scroll down and select <strong className="text-slate-800">"Add to Home Screen"</strong>.</span>
               <Plus size={20} className="bg-slate-200 p-0.5 rounded text-slate-600" />
             </div>
@@ -174,13 +182,13 @@ const InstallModal = ({ isOpen, onClose }) => {
         {os === 'android' && (
           <div className="space-y-4">
             <div className="flex items-center gap-4 text-sm text-slate-700">
-              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">1</span>
+              <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-700">1</span>
               <span>Tap the <strong>Menu</strong> (three dots) icon.</span>
               <Menu size={20} className="text-slate-500" />
             </div>
             <div className="w-px h-4 bg-slate-200 ml-4"></div>
             <div className="flex items-center gap-4 text-sm text-slate-700">
-              <span className="flex-shrink-0 w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600">2</span>
+              <span className="flex-shrink-0 w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-700">2</span>
               <span>Select <strong className="text-slate-800">"Install App"</strong>.</span>
             </div>
           </div>
@@ -188,7 +196,7 @@ const InstallModal = ({ isOpen, onClose }) => {
 
         <button 
           onClick={onClose}
-          className="w-full mt-8 py-3 bg-pink-500 text-white rounded-xl font-bold active:scale-95 transition-all"
+          className="w-full mt-8 py-3 bg-slate-900 text-white rounded-xl font-bold active:scale-95 transition-all"
         >
           Got it
         </button>
@@ -215,7 +223,7 @@ const ErrorTooltip = ({ original, correction, reason }) => {
   return (
     <span 
       ref={tooltipRef}
-      className="relative inline-block cursor-pointer mx-1 align-baseline"
+      className="relative inline-block cursor-pointer mx-1 align-baseline whitespace-pre-wrap"
       onClick={(e) => {
         e.stopPropagation(); 
         setIsOpen(!isOpen);
@@ -248,7 +256,7 @@ const ErrorTooltip = ({ original, correction, reason }) => {
           <span className="block font-serif italic text-sm mb-2">
             {reason}
           </span>
-          <span className="block pt-2 border-t border-yellow-600/10 text-xs text-emerald-700 font-bold bg-yellow-100/50 -mx-3 -mb-3 p-2 rounded-b-sm">
+          <span className="block pt-2 border-t border-yellow-600/10 text-xs text-emerald-700 font-bold bg-yellow-100/50 -mx-3 -mb-3 p-2 rounded-b-sm whitespace-pre-wrap">
              ✓ {correction}
           </span>
           <span 
@@ -359,10 +367,10 @@ export default function App() {
     });
   };
 
-  // --- UPDATED: Analyze Function using CUSTOM PROXY ---
+  // --- UPDATED: Analyze Function with "Accept US, Prioritize UK" Prompt ---
   const analyzeSingleEssay = async (uploadItem) => {
     try {
-      if (!userApiKey) throw new Error("API Key is missing");
+      if (!userApiKey) throw new Error("API Key is missing. Please go to Settings.");
       const base64Data = await preprocessImage(uploadItem.file);
 
       let levelPrompt = "";
@@ -378,6 +386,12 @@ export default function App() {
         Transcribe the English text EXACTLY as written, preserving all errors. Detect the student's name.
         **STEP 2: ANALYSIS**
         Analyze based on: ${levelPrompt}
+        
+        **IMPORTANT: LANGUAGE SETTINGS**
+        1. **Feedback & Output:** Use **British English** (UK) for all your comments, suggestions, and corrections (e.g., use 'colour', 'organise', 'programme').
+        2. **Grading Policy:** Accept **US English** spellings (e.g., 'color', 'organize', 'center') as **valid**. Do NOT mark US spelling as an error unless the student is inconsistent (mixing US/UK styles).
+        3. **Correction Logic:** If you correct a sentence for other reasons (grammar/vocab), output the corrected version in British English, but do not purely "correct" US spelling to UK spelling if that was the only "mistake".
+
         **STEP 3: OUTPUT JSON**
         IMPORTANT: Return VALID JSON. Escape double quotes in strings.
         Return result in this JSON format:
@@ -388,7 +402,7 @@ export default function App() {
           "score": 0-100,
           "diffText": "The complete essay text. BUT for every error found, replace the error with this specific pattern: {{{original_word|||corrected_word|||explanation_why}}}. Example: I {{{go|||went|||Use past tense}}} to school.",
           "correctedText": "Clean corrected version.",
-          "comments": "Detailed feedback.",
+          "comments": "Detailed feedback in British English.",
           "suggestions": ["Suggestion 1", "Suggestion 2"],
           "spellingErrors": ["wrong -> right", "mistake -> correction"], 
           "strengthSummary": "One short sentence highlighting the best part.",
@@ -396,38 +410,39 @@ export default function App() {
         }
       `;
 
-      // --- PROXY CONFIGURATION START ---
-      const PROXY_URL = 'https://my-gemini-proxy-dun.vercel.app/api'; 
+      // --- DIRECT API CALL ---
+      const MODEL_NAME = selectedModel || 'gemini-2.5-flash-preview-09-2025';
+      const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${userApiKey}`;
+      
+      const payload = {
+        contents: [{
+          role: "user",
+          parts: [
+            { text: promptText },
+            { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+          ]
+        }],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      };
       
       const response = await fetchWithRetry(
-        PROXY_URL,
+        API_URL,
         {
           method: 'POST',
           headers: { 
-            'Content-Type': 'application/json',
-            'x-gemini-api-key': userApiKey, // Header authentication
-            'x-gemini-model': selectedModel
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            // Only sending standard Gemini Payload body
-            contents: [{ role: "user", parts: [{ text: promptText }, { inlineData: { mimeType: "image/jpeg", data: base64Data } }] }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
+          body: JSON.stringify(payload)
         }
       );
-      // --- PROXY CONFIGURATION END ---
 
       if (!response.ok) {
         if (response.status === 404) throw new Error(`Model '${selectedModel}' not found. Check Settings.`);
-        if (response.status === 400 || response.status === 403) throw new Error("Invalid API Key or Model Access Denied.");
+        if (response.status === 400) throw new Error("Invalid API Key or Bad Request.");
+        if (response.status === 403) throw new Error("API Key permissions denied.");
         if (response.status === 503) throw new Error("Server is busy (503). Please try again later.");
-        
-        // Handle custom error text from proxy
-        const text = await response.text();
-        try {
-           const jsonErr = JSON.parse(text);
-           if(jsonErr.error) throw new Error(jsonErr.error);
-        } catch(e) { /* use default error */ }
         
         throw new Error(`API Error: ${response.status}`);
       }
@@ -435,7 +450,7 @@ export default function App() {
       const data = await response.json();
       
       const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!textResponse) throw new Error("No response text");
+      if (!textResponse) throw new Error("No response text from AI");
 
       const resultData = parseRobustJSON(textResponse);
       resultData.processedImageBase64 = base64Data;
@@ -490,7 +505,8 @@ export default function App() {
   const renderDiffText = (text) => {
     if (!text) return null;
     if (text.includes('{{{')) {
-        const parts = text.split(/(\{\{\{.*?\}\}\})/g);
+        // FIXED: Regex now uses [\s\S] to match across newlines inside the tag
+        const parts = text.split(/(\{\{\{[\s\S]*?\}\}\})/g);
         return (
             <span className="leading-loose text-lg font-serif">
                 {parts.map((part, index) => {
@@ -533,29 +549,31 @@ export default function App() {
     });
 
     return (
-    <div className="flex flex-col h-full bg-pink-50">
-      <header className="bg-pink-500 text-white p-6 rounded-b-3xl shadow-lg relative overflow-hidden transition-all">
-        <div className="absolute top-0 right-0 p-4 opacity-20">
-          <Heart size={120} className="text-pink-300 transform rotate-12" />
+    <div className="flex flex-col h-full bg-slate-50">
+      {/* Header: Was bg-pink-500, now white with black text */}
+      <header className="bg-white text-slate-900 p-6 rounded-b-3xl shadow-sm border-b border-slate-200 relative overflow-hidden transition-all">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <Heart size={120} className="text-slate-900 transform rotate-12" />
         </div>
         <div className="flex justify-between items-start mb-2 relative z-10">
             <div className="flex items-center gap-2">
-                <Globe size={20} className="text-pink-100" />
+                <Globe size={20} className="text-slate-900" />
                 <h1 className="text-2xl font-bold">Miss Wong’s AI Assistant</h1>
             </div>
             <div className="flex gap-2">
                 {!isStandalone && (
-                  <button onClick={handleInstallClick} className="p-2 bg-pink-400/50 hover:bg-pink-400 rounded-full transition-colors text-white" title="Install">
+                  <button onClick={handleInstallClick} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-900" title="Install">
                       <Download size={20} />
                   </button>
                 )}
-                <button onClick={() => setCurrentView('settings')} className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors" title="Settings">
+                <button onClick={() => setCurrentView('settings')} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors text-slate-900" title="Settings">
                     <Settings size={20} />
                 </button>
             </div>
         </div>
-        <p className="text-pink-100 text-sm mb-6 font-medium">Assist Miss Wong in her work with love ❤️.</p>
-        <div className="bg-white/20 p-1 rounded-xl backdrop-blur-sm flex justify-between">
+        <p className="text-slate-500 text-sm mb-6 font-medium">Assist Miss Wong in her work with love ❤️.</p>
+        {/* Level Selector: Was bg-white/20, now bg-slate-100 */}
+        <div className="bg-slate-100 p-1 rounded-xl backdrop-blur-sm flex justify-between">
           {[
             { id: 'Primary', label: 'Primary', icon: <School size={16} /> },
             { id: 'Secondary', label: 'Secondary', icon: <BookOpenCheck size={16} /> },
@@ -564,7 +582,7 @@ export default function App() {
             <button
               key={lvl.id}
               onClick={() => setEssayLevel(lvl.id)}
-              className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${essayLevel === lvl.id ? 'bg-white text-pink-600 shadow-md transform scale-105 font-bold' : 'text-pink-100 hover:bg-white/10'}`}
+              className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${essayLevel === lvl.id ? 'bg-white text-slate-900 shadow-md transform scale-105 font-bold border border-slate-200' : 'text-slate-500 hover:bg-white/50'}`}
             >
               {lvl.icon} {lvl.label}
             </button>
@@ -574,30 +592,31 @@ export default function App() {
 
       <div className="flex-1 p-6 overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-pink-800 flex items-center gap-2">
-            <History size={18} className="text-pink-500" /> History
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <History size={18} className="text-slate-900" /> History
           </h2>
         </div>
 
-        <div className="flex mb-4 bg-pink-100 p-1 rounded-xl">
+        {/* Filter Buttons: Was bg-pink-100, now bg-slate-200/50 */}
+        <div className="flex mb-4 bg-slate-100 p-1 rounded-xl">
             <button 
                 onClick={() => setHistoryFilter('incomplete')}
                 className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2
                     ${historyFilter === 'incomplete' 
-                        ? 'bg-white text-pink-700 shadow-sm' 
-                        : 'text-pink-400 hover:text-pink-600'}`}
+                        ? 'bg-white text-slate-900 shadow-sm border border-slate-200' 
+                        : 'text-slate-400 hover:text-slate-600'}`}
             >
                 Incomplete
                 {history.filter(i => i.status !== 'completed').length > 0 && 
-                    <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{history.filter(i => i.status !== 'completed').length}</span>
+                    <span className="bg-slate-900 text-white text-[10px] px-1.5 py-0.5 rounded-full">{history.filter(i => i.status !== 'completed').length}</span>
                 }
             </button>
             <button 
                 onClick={() => setHistoryFilter('completed')}
                 className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2
                     ${historyFilter === 'completed' 
-                        ? 'bg-white text-emerald-600 shadow-sm' 
-                        : 'text-pink-400 hover:text-pink-600'}`}
+                        ? 'bg-white text-slate-900 shadow-sm border border-slate-200' 
+                        : 'text-slate-400 hover:text-slate-600'}`}
             >
                 <CheckCircle size={14} /> Completed
             </button>
@@ -605,9 +624,9 @@ export default function App() {
 
         <div className="space-y-3">
           {displayedHistory.length === 0 ? (
-             <div className="text-center py-10 text-pink-400 text-sm flex flex-col items-center">
-                <div className="bg-white p-4 rounded-full mb-3 shadow-sm">
-                  <ScanLine size={32} className="text-pink-200" />
+             <div className="text-center py-10 text-slate-400 text-sm flex flex-col items-center">
+                <div className="bg-white p-4 rounded-full mb-3 shadow-sm border border-slate-100">
+                  <ScanLine size={32} className="text-slate-200" />
                 </div>
                 {historyFilter === 'incomplete' ? "All caught up! No pending essays." : "No completed essays yet."}
              </div>
@@ -616,12 +635,12 @@ export default function App() {
                 <button 
                   key={item?.id || Math.random()} 
                   onClick={() => handleHistoryClick(item)}
-                  className="w-full bg-white p-4 rounded-xl shadow-sm border border-pink-100 flex justify-between items-center hover:shadow-md hover:border-pink-300 transition-all text-left group"
+                  className="w-full bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center hover:shadow-md hover:border-slate-300 transition-all text-left group"
                 >
                   <div className="flex-1 min-w-0 pr-4">
                     <div className="flex items-center gap-2 mb-1">
-                       <h3 className="font-bold text-slate-800 text-sm group-hover:text-pink-600 transition-colors">{item?.studentName || 'Unknown'}</h3>
-                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${item?.level === 'University' ? 'bg-purple-100 text-purple-600' : item?.level === 'Secondary' ? 'bg-indigo-100 text-indigo-600' : 'bg-orange-100 text-orange-600'}`}>
+                       <h3 className="font-bold text-slate-800 text-sm group-hover:text-slate-900 transition-colors">{item?.studentName || 'Unknown'}</h3>
+                       <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider ${item?.level === 'University' ? 'bg-purple-50 text-purple-600 border border-purple-100' : item?.level === 'Secondary' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-orange-50 text-orange-600 border border-orange-100'}`}>
                         {item?.level || 'Secondary'}
                       </span>
                     </div>
@@ -630,15 +649,15 @@ export default function App() {
                   </div>
                   <div className="flex flex-col items-end gap-1">
                       {item.status === 'completed' ? (
-                          <div className="text-emerald-500 flex items-center gap-1 text-sm font-bold">
+                          <div className="text-emerald-600 flex items-center gap-1 text-sm font-bold">
                               <CheckCircle size={16} /> Done
                           </div>
                       ) : (
-                          <div className={`text-lg font-bold ${item?.score >= 80 ? 'text-green-500' : item?.score >= 60 ? 'text-yellow-500' : 'text-red-500'}`}>
+                          <div className={`text-lg font-bold ${item?.score >= 80 ? 'text-green-600' : item?.score >= 60 ? 'text-yellow-600' : 'text-red-500'}`}>
                             {item?.score || '-'}
                           </div>
                       )}
-                      <ArrowRight size={14} className="text-pink-200 group-hover:text-pink-400 transform group-hover:translate-x-1 transition-all" />
+                      <ArrowRight size={14} className="text-slate-200 group-hover:text-slate-400 transform group-hover:translate-x-1 transition-all" />
                   </div>
                 </button>
             ))
@@ -646,14 +665,17 @@ export default function App() {
         </div>
       </div>
 
-      <div className="p-6 bg-white border-t border-pink-100">
+      {/* Footer Actions */}
+      <div className="p-6 bg-white border-t border-slate-200">
         <div className="grid grid-cols-2 gap-4">
-          <label className={`flex flex-col items-center justify-center bg-pink-500 hover:bg-pink-600 text-white py-4 rounded-2xl shadow-lg shadow-pink-200 cursor-pointer transition-transform active:scale-95 gap-2`}>
+          {/* Scan Button: Was pink, now Black/Slate-900 */}
+          <label className={`flex flex-col items-center justify-center bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl shadow-lg shadow-slate-200 cursor-pointer transition-transform active:scale-95 gap-2`}>
             <Camera size={28} />
             <span className="font-semibold">Scan</span>
             <input type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handleImageUpload} />
           </label>
-          <label className={`flex flex-col items-center justify-center bg-white border-2 border-pink-200 hover:bg-pink-50 text-pink-600 py-4 rounded-2xl cursor-pointer transition-transform active:scale-95 gap-2`}>
+          {/* Upload Button: Was white/pink border, now white/slate border */}
+          <label className={`flex flex-col items-center justify-center bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-900 py-4 rounded-2xl cursor-pointer transition-transform active:scale-95 gap-2`}>
             <ImageIcon size={28} />
             <span className="font-semibold">Upload</span>
             <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
@@ -712,9 +734,9 @@ export default function App() {
 
     return (
         <div className="flex flex-col h-full bg-slate-50">
-            <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10 border-b border-pink-100">
+            <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10 border-b border-slate-100">
                 {!isFirstSetup ? (
-                    <button onClick={() => setCurrentView('home')} className="p-2 text-slate-500 hover:bg-pink-50 rounded-full">
+                    <button onClick={() => setCurrentView('home')} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
                         <ChevronLeft size={24} />
                     </button>
                 ) : <div className="w-10"></div>}
@@ -723,7 +745,7 @@ export default function App() {
             </header>
             <div className="p-6 flex-1 overflow-y-auto">
                 <div className="mb-6">
-                    <button onClick={() => setCurrentView('data-management')} className="w-full bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <button onClick={() => setCurrentView('data-management')} className="w-full bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-green-100 text-green-600 rounded-lg"><Database size={20} /></div>
                             <span className="font-bold text-slate-700">Manage Data</span>
@@ -732,9 +754,9 @@ export default function App() {
                     </button>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-pink-100 text-pink-600 rounded-lg"><Key size={24} /></div>
+                        <div className="p-2 bg-slate-100 text-slate-600 rounded-lg"><Key size={24} /></div>
                         <h2 className="text-lg font-bold text-slate-800">API Configuration</h2>
                     </div>
                     <div className="mb-6">
@@ -744,7 +766,7 @@ export default function App() {
                                 value={tempKey}
                                 onChange={(e) => setTempKey(e.target.value)}
                                 placeholder="Paste API Key..."
-                                className={`w-full p-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 bg-slate-50 text-slate-800 ${isFirstSetup && !tempKey ? 'border-pink-400 ring-2 ring-pink-100' : 'border-slate-200'}`}
+                                className={`w-full p-3 pr-12 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 bg-slate-50 text-slate-800 ${isFirstSetup && !tempKey ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200'}`}
                             />
                             <button onClick={() => setShowKey(!showKey)} className="absolute right-3 top-3 text-slate-400 hover:text-slate-600">
                                 {showKey ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -758,15 +780,15 @@ export default function App() {
                     </div>
                     
                     <div className="grid grid-cols-1 gap-3 mb-4">
-                        <button onClick={() => { setTempModel('gemini-2.5-flash-preview-09-2025'); setIsCustomMode(false); }} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all text-left ${tempModel === 'gemini-2.5-flash-preview-09-2025' ? 'border-pink-500 bg-pink-50' : 'border-slate-200 hover:border-slate-300'}`}>
+                        <button onClick={() => { setTempModel('gemini-2.5-flash-preview-09-2025'); setIsCustomMode(false); }} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all text-left ${tempModel === 'gemini-2.5-flash-preview-09-2025' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 hover:border-slate-300'}`}>
                             <div className="p-2 bg-yellow-100 text-yellow-600 rounded-full"><Zap size={20} /></div>
                             <div><div className="font-bold text-slate-800">Flash (2.5 Preview)</div><div className="text-xs text-slate-500">Default. Fast & Efficient.</div></div>
                         </button>
-                        <button onClick={() => { setTempModel('gemini-3-pro-preview'); setIsCustomMode(false); }} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all text-left ${tempModel === 'gemini-3-pro-preview' ? 'border-pink-500 bg-pink-50' : 'border-slate-200 hover:border-slate-300'}`}>
+                        <button onClick={() => { setTempModel('gemini-3-pro-preview'); setIsCustomMode(false); }} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all text-left ${tempModel === 'gemini-3-pro-preview' ? 'border-slate-900 bg-slate-50' : 'border-slate-200 hover:border-slate-300'}`}>
                             <div className="p-2 bg-purple-100 text-purple-600 rounded-full"><Brain size={20} /></div>
                             <div><div className="font-bold text-slate-800">Gemini 3 Pro</div><div className="text-xs text-slate-500">gemini-3-pro-preview</div></div>
                         </button>
-                        <button onClick={() => { setTempModel('custom'); setIsCustomMode(true); }} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all text-left ${isCustomMode ? 'border-pink-500 bg-pink-50' : 'border-slate-200 hover:border-slate-300'}`}>
+                        <button onClick={() => { setTempModel('custom'); setIsCustomMode(true); }} className={`p-4 rounded-xl border-2 flex items-center gap-4 transition-all text-left ${isCustomMode ? 'border-slate-900 bg-slate-50' : 'border-slate-200 hover:border-slate-300'}`}>
                             <div className="p-2 bg-slate-100 text-slate-600 rounded-full"><Edit2 size={20} /></div>
                             <div><div className="font-bold text-slate-800">Custom</div><div className="text-xs text-slate-500">Enter specific model ID</div></div>
                         </button>
@@ -775,12 +797,13 @@ export default function App() {
                     {isCustomMode && (
                         <div className="mb-6 animate-fade-in">
                             <label className="block text-xs font-bold text-slate-500 mb-1">Custom Model ID</label>
-                            <input type="text" value={customModelInput} onChange={(e) => setCustomModelInput(e.target.value)} placeholder="e.g. gemini-1.5-pro-latest" className="w-full p-3 border border-pink-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white text-slate-800 text-sm" />
+                            <input type="text" value={customModelInput} onChange={(e) => setCustomModelInput(e.target.value)} placeholder="e.g. gemini-1.5-pro-latest" className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 bg-white text-slate-800 text-sm" />
                         </div>
                     )}
 
                     <div className="flex gap-3 mt-4">
-                         <button onClick={handleSaveKey} className="flex-1 py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg shadow-pink-200 active:scale-95 transition-all flex justify-center items-center gap-2 hover:bg-pink-600">
+                         {/* Save Button: Black/Slate-900 */}
+                         <button onClick={handleSaveKey} className="flex-1 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg shadow-slate-200 active:scale-95 transition-all flex justify-center items-center gap-2 hover:bg-slate-800">
                             {saveStatus === 'Saved!' ? <CheckCircle size={20}/> : <Save size={20} />}
                             {saveStatus || (isFirstSetup ? 'Save & Start' : 'Save Settings')}
                         </button>
@@ -837,7 +860,7 @@ export default function App() {
 
     return (
         <div className="flex flex-col h-full bg-slate-50">
-            <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10 border-b border-pink-100">
+            <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10 border-b border-slate-100">
                 <button onClick={() => setCurrentView('settings')} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
                     <ChevronLeft size={24} />
                 </button>
@@ -845,7 +868,7 @@ export default function App() {
                 <div className="w-10"></div>
             </header>
             <div className="p-6 flex-1 overflow-y-auto">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-green-100 text-green-600 rounded-lg"><ClipboardPaste size={24} /></div>
                         <h2 className="text-lg font-bold text-slate-800">Import Data</h2>
@@ -857,7 +880,7 @@ export default function App() {
                         <FileJson size={20} /> Import JSON
                     </button>
                 </div>
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-blue-100 text-blue-600 rounded-lg"><Download size={24} /></div>
                         <h2 className="text-lg font-bold text-slate-800">Backup</h2>
@@ -891,7 +914,7 @@ export default function App() {
             <span className="text-xs text-slate-400">{uploads.length} selected</span>
           </div>
           {hasFinishedItems ? (
-             <button onClick={() => { setViewSource('upload'); setCurrentView('result'); }} className="px-3 py-1 bg-pink-500 rounded-full text-xs font-bold animate-pulse text-white">
+             <button onClick={() => { setViewSource('upload'); setCurrentView('result'); }} className="px-3 py-1 bg-white text-slate-900 rounded-full text-xs font-bold animate-pulse">
                Results
              </button>
           ) : <div className="w-9"></div>}
@@ -917,7 +940,7 @@ export default function App() {
         </div>
         <div className="h-24 bg-slate-800 p-2 flex gap-2 overflow-x-auto">
           {uploads.map(u => (
-            <button key={u.id} onClick={() => setSelectedUploadId(u.id)} className={`relative flex-shrink-0 aspect-[3/4] h-full rounded-lg overflow-hidden border-2 transition-all ${selectedUploadId === u.id ? 'border-pink-500 scale-105' : 'border-transparent opacity-60'}`}>
+            <button key={u.id} onClick={() => setSelectedUploadId(u.id)} className={`relative flex-shrink-0 aspect-[3/4] h-full rounded-lg overflow-hidden border-2 transition-all ${selectedUploadId === u.id ? 'border-white scale-105' : 'border-transparent opacity-60'}`}>
               <img src={u.preview} className="w-full h-full object-cover" />
               <div className="absolute inset-0 flex items-center justify-center">
                  {u.status === 'analyzing' && <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>}
@@ -943,8 +966,13 @@ export default function App() {
               {isAnalyzing ? <><Loader className="animate-spin" size={20} /><span>Processing...</span></> : <><Sparkles size={20} /><span>Analyze {pendingCount} Essays</span></>}
             </button>
           ) : (
-            <button onClick={() => { setViewSource('upload'); setCurrentView('result'); }} className="w-full py-4 bg-white text-black rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
-              <BookOpenCheck size={20} /> View All Results
+            // --- UPDATED: Button Disabled Logic ---
+            <button 
+                onClick={() => { if (hasFinishedItems) { setViewSource('upload'); setCurrentView('result'); } }} 
+                disabled={!hasFinishedItems}
+                className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 ${hasFinishedItems ? 'bg-white text-black' : 'bg-slate-800 text-slate-600 cursor-not-allowed'}`}
+            >
+              <BookOpenCheck size={20} /> {hasFinishedItems ? 'View All Results' : 'No Completed Results'}
             </button>
           )}
         </div>
@@ -970,7 +998,7 @@ export default function App() {
             <div className="flex flex-col items-center justify-center h-full bg-slate-50 p-6 text-center">
                 <AlertCircle size={48} className="text-slate-300 mb-4"/>
                 <h3 className="text-lg font-bold text-slate-700">No Data Found</h3>
-                <button onClick={() => { setUploads([]); setCurrentView('home'); }} className="mt-4 text-pink-600 font-semibold">Home</button>
+                <button onClick={() => { setUploads([]); setCurrentView('home'); }} className="mt-4 text-slate-900 font-semibold">Home</button>
             </div>
         )
     }
@@ -1005,7 +1033,7 @@ export default function App() {
 
     return (
       <div className="flex flex-col h-full bg-slate-50">
-        <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10 border-b border-pink-100">
+        <header className="bg-white p-4 shadow-sm flex items-center sticky top-0 z-10 border-b border-slate-100">
           <button onClick={() => isHistoryMode ? setCurrentView('home') : setCurrentView('scan-preview')} className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
             <ChevronLeft size={24} />
           </button>
@@ -1020,7 +1048,7 @@ export default function App() {
           {!isCompleted ? (
               <button 
                 onClick={markAsCompleted}
-                className="flex items-center gap-1 px-3 py-1.5 bg-pink-500 text-white rounded-lg text-xs font-bold hover:bg-pink-600 transition-colors shadow-md"
+                className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-colors shadow-md"
               >
                  <CheckSquare size={16} /> Mark Done
               </button>
@@ -1033,10 +1061,10 @@ export default function App() {
 
         {/* Student Selector */}
         {!isHistoryMode && finishedUploads.length > 0 && (
-            <div className="bg-white border-b border-pink-100 p-2 flex gap-2 overflow-x-auto shadow-inner">
+            <div className="bg-white border-b border-slate-100 p-2 flex gap-2 overflow-x-auto shadow-inner">
                 {finishedUploads.map(u => (
-                    <button key={u.id} onClick={() => setSelectedUploadId(u.id)} className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${selectedUploadId === u.id ? 'bg-pink-500 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-pink-200'}`}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${selectedUploadId === u.id ? 'bg-white text-pink-500' : 'bg-slate-100'}`}>
+                    <button key={u.id} onClick={() => setSelectedUploadId(u.id)} className={`flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${selectedUploadId === u.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${selectedUploadId === u.id ? 'bg-white text-slate-900' : 'bg-slate-100'}`}>
                             {u.result.studentName ? u.result.studentName.charAt(0) : '?'}
                         </div>
                         <span className="text-sm font-medium whitespace-nowrap max-w-[100px] truncate">{u.result.studentName || 'Unknown'}</span>
@@ -1046,8 +1074,8 @@ export default function App() {
         )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {/* Read-Only Score Card */}
-          <div className={`text-white p-6 rounded-2xl shadow-lg relative overflow-hidden bg-pink-500`}>
+          {/* Read-Only Score Card: Was pink gradient, now Slate-900 */}
+          <div className={`text-white p-6 rounded-2xl shadow-lg relative overflow-hidden bg-slate-900`}>
             <div className="absolute -right-6 -top-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-4">
@@ -1070,7 +1098,7 @@ export default function App() {
           </div>
 
           {/* Feedback (Read-Only) */}
-          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+          <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
               <Sparkles size={16} className="text-yellow-500" /> 
               Detailed Feedback
@@ -1085,7 +1113,7 @@ export default function App() {
                     <ul className="space-y-2">
                     {displayData.suggestions.map((suggestion, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
-                        <div className="mt-1 min-w-[6px] h-[6px] rounded-full bg-pink-400 shrink-0"></div>
+                        <div className="mt-1 min-w-[6px] h-[6px] rounded-full bg-slate-300 shrink-0"></div>
                         <span>{suggestion}</span>
                         </li>
                     ))}
@@ -1094,16 +1122,16 @@ export default function App() {
             )}
           </div>
 
-          {/* Content Tabs */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-visible">
+          {/* Content Tabs: Was pink underline, now Slate-900 */}
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-visible">
             <div className="flex border-b border-slate-100 overflow-x-auto">
-              <button onClick={() => setTab('diff')} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-4 ${tab === 'diff' ? 'text-pink-600 bg-pink-50 border-b-2 border-pink-600' : 'text-slate-500'}`}>
+              <button onClick={() => setTab('diff')} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-4 ${tab === 'diff' ? 'text-slate-900 bg-slate-50 border-b-2 border-slate-900' : 'text-slate-500'}`}>
                 Correction
               </button>
-              <button onClick={() => setTab('clean')} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-4 ${tab === 'clean' ? 'text-pink-600 bg-pink-50 border-b-2 border-pink-600' : 'text-slate-500'}`}>
+              <button onClick={() => setTab('clean')} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-4 ${tab === 'clean' ? 'text-slate-900 bg-slate-50 border-b-2 border-slate-900' : 'text-slate-500'}`}>
                 Clean Text
               </button>
-              <button onClick={() => setTab('ocr')} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-4 ${tab === 'ocr' ? 'text-pink-600 bg-pink-50 border-b-2 border-pink-600' : 'text-slate-500'}`}>
+              <button onClick={() => setTab('ocr')} className={`flex-1 py-3 text-sm font-semibold transition-colors whitespace-nowrap px-4 ${tab === 'ocr' ? 'text-slate-900 bg-slate-50 border-b-2 border-slate-900' : 'text-slate-500'}`}>
                  Raw OCR
               </button>
             </div>
@@ -1116,8 +1144,8 @@ export default function App() {
                       </div>
                    )}
                    {tab === 'clean' && (
-                      <div className="prose prose-sm prose-pink max-w-none">
-                        <p className="whitespace-pre-wrap leading-loose text-slate-700 text-justify font-sans">{displayData.correctedText}</p>
+                      <div className="prose prose-sm max-w-none text-slate-700">
+                        <p className="whitespace-pre-wrap leading-loose text-justify font-sans">{displayData.correctedText}</p>
                       </div>
                    )}
                    {tab === 'ocr' && (
